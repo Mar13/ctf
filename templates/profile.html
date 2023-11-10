@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CloudSign - User Profile</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #F3F4F6;
+        }
+        .header {
+            background-color: #1F2937;
+            color: #F3F4F6;
+            padding: 20px;
+            text-align: center;
+        }
+        .profile {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .profile img {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            margin-bottom: 20px;
+            cursor: pointer;
+        }
+        .profile-info {
+            text-align: center;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+            animation-name: fadeIn;
+            animation-duration: 0.5s;
+        }
+        .modal-content {
+            background-color: #F3F4F6;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 30%;
+            text-align: center;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+        }
+        #avatarUrl {
+            padding: 10px;
+            width: 80%;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            border: 1px solid #888;
+        }
+        #urlForm input[type="submit"] {
+            padding: 10px 20px;
+            background-color: #1F2937;
+            color: #F3F4F6;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        #urlForm input[type="submit"]:hover {
+            background-color: #4B5563;
+        }
+        @keyframes fadeIn {
+            from {opacity: 0;}
+            to {opacity: 1;}
+        }
+        .signature-text {
+            word-break: break-all;
+            width: 378px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Your Profile</h1>
+    </div>
+    <div class="profile">
+        <img src="{{ '/static/' + user.uuid + '/avatar.png' }}" onerror="this.onerror=null; this.src='/static/default/avatar.png'" alt="User Avatar" id="avatar" onclick="showModal()">
+        <div class="profile-info">
+            <h2>{{ user.name }}</h2>
+            <p>{{ user.email }}</p>
+            <p class="signature-text"><b>Signature:</b><br>{{ user.signature }}</p>
+        </div>
+    </div>
+    <div id="avatarModal" class="modal" onclick="closeModal(event)">
+        <div class="modal-content">
+            <form id="urlForm">
+                <label for="avatarUrl">New Avatar URL:</label><br>
+                <input type="url" id="avatarUrl" name="avatarUrl" required><br>
+                <input type="submit" value="Change Avatar">
+            </form>
+        </div>
+    </div>
+    <script>
+        function showModal() {
+            document.getElementById('avatarModal').style.display = "block";
+        }
+        function closeModal(event) {
+            if (event.target == document.getElementById('avatarModal')) {
+                document.getElementById('avatarModal').style.display = "none";
+            }
+        }
+        document.getElementById('urlForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            let avatarUrl = document.getElementById('avatarUrl').value;
+
+            fetch('/change_photo', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({url: avatarUrl}),
+            }).then(response => {
+                if(!response.ok) {
+                    return response.json().then(json => {
+                        throw new Error(json.error);
+                    });
+                }
+                else {
+                    document.getElementById('avatarModal').style.display = "none";
+                    location.reload();
+                }  
+            }).catch(error => {
+                alert('An error occurred: ' + error.message);
+            });
+        });
+    </script>
+</body>
+</html>
